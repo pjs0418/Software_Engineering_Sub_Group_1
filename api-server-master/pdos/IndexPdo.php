@@ -151,7 +151,7 @@ from (
                   inner join(select guestIdx, case when returnDate < date(now()) then 'o' else 'x' end as isOverdue
                              from GuestIssueState) OverdueState
                             on OverdueState.guestIdx = Guest.guestIdx
-         where Guest.guestName = ?
+         where Guest.guestName like concat('%', ?, '%')
            AND isDeleted = 'N'
          order by isOverdue
          limit 18446744073709551615) as order_overdue
@@ -173,11 +173,80 @@ function getBooksByAuthor($author)
     $pdo = pdoSqlConnect();
     $query = "select bookIdx, bookTitle, author, bookCoverImageUrl, category, quantity
 from Book
-where author = ?
+where author like concat('%', ?, '%')
   and isDeleted = 'N';";
 
     $st = $pdo->prepare($query);
     $st->execute([$author]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getBooksByTitle($title)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select bookIdx, bookTitle, author, bookCoverImageUrl, category, quantity
+from Book
+where bookTitle like concat('%', ?, '%')
+  and isDeleted = 'N';";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$title]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function issueBooks($guestIdx, $issueBookList)
+{
+
+    for($i = 0;$i < count($issueBookList);$i++) {
+
+        $pdo = pdoSqlConnect();
+        $query = "insert into GuestIssueState(guestIdx, bookIdx, returnDate)
+values (?, ?, date_add(now(), interval 7 day));";
+
+        $st = $pdo->prepare($query);
+        $st->execute([$guestIdx, $issueBookList[$i]->bookIdx]);
+
+        $st = null;
+        $pdo = null;
+    }
+}
+
+function getGuestIssueInfo($guestIdx)
+{
+    $pdo = pdoSqlConnect();
+    $query = "select GuestIssueState.guestIdx,
+       guestName,
+       GuestIssueState.bookIdx,
+       bookTitle,
+       author,
+       concat(date_sub(returnDate, interval 7 day), ' ~ ', returnDate) as issuePeriod,
+       case when returnDate < date(now()) then 'o' else 'x' end        as overdueStatus,
+       case
+           when TIMESTAMPDIFF(day, date(now()), returnDate) > 0
+               then TIMESTAMPDIFF(day, date(now()), returnDate) * 100
+           else 0 end                                                  as calculatedFine
+from GuestIssueState
+         inner join(select guestIdx, guestName from Guest) GuestInfo
+                   on GuestInfo.guestIdx = GuestIssueState.guestIdx
+         inner join(select bookIdx, bookTitle, author from Book) BookInfo
+                   on BookInfo.bookIdx = GuestIssueState.bookIdx
+where GuestIssueState.guestIdx = ?
+  and isReturned = 'N';";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$guestIdx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 

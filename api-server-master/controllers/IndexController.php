@@ -205,6 +205,52 @@ try {
             $res->message = "책 검색 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
+
+        case "issueBooks":
+            http_response_code(200);
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidJWT($jwt, JWT_SECRET_KEY)) { // function.php 에 구현
+                $res->isSuccess = FALSE;
+                $res->code = 200;
+                $res->message = "유효하지 않은 토큰";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $guestIdx = $req->guestIdx;
+            $issueBookList = $req->issueBookList;
+
+            issueBooks($guestIdx, $issueBookList);
+
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "책 대출 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
+        case "guestIssueInfo":
+            http_response_code(200);
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidJWT($jwt, JWT_SECRET_KEY)) { // function.php 에 구현
+                $res->isSuccess = FALSE;
+                $res->code = 200;
+                $res->message = "유효하지 않은 토큰";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $res->result = getGuestIssueInfo($vars['guestIdx']);
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "게스트 책 대출 정보 조회 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);
