@@ -25,8 +25,9 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('POST', '/manager-logins', ['IndexController', 'managerLogin']);
     $r->addRoute('GET', '/guests', ['IndexController', 'searchGuests']);
     $r->addRoute('GET', '/books', ['IndexController', 'searchBooks']);
-    $r->addRoute('POST', '/books', ['IndexController', 'getBooks']);
+    $r->addRoute('POST', '/books', ['IndexController', 'addBooks']);
     $r->addRoute('POST', '/issues', ['IndexController', 'issueBooks']);
+    $r->addRoute('POST', '/returns', ['IndexController', 'returnBooks']);
     $r->addRoute('GET', '/issues/{guestIdx}', ['IndexController', 'guestIssueInfo']);
     $r->addRoute('POST', '/user', ['IndexController', 'createUser']); // 비밀번호 해싱 예시 추가
 

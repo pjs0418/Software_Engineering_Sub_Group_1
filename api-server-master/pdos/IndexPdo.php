@@ -220,6 +220,15 @@ values (?, ?, date_add(now(), interval 7 day));";
 
         $st = null;
         $pdo = null;
+
+        $pdo = pdoSqlConnect();
+        $query = "update Book set quantity = quantity - 1 where bookIdx = ? and quantity > 0 and isDeleted = 'N';";
+
+        $st = $pdo->prepare($query);
+        $st->execute([$issueBookList[$i]->bookIdx]);
+
+        $st = null;
+        $pdo = null;
     }
 }
 
@@ -254,6 +263,31 @@ where GuestIssueState.guestIdx = ?
     $pdo = null;
 
     return $res;
+}
+
+function returnBooks($guestIdx, $returnBookList)
+{
+
+    for($i = 0;$i < count($returnBookList);$i++) {
+
+        $pdo = pdoSqlConnect();
+        $query = "update GuestIssueState set isReturned = 'Y' where guestIdx = ? and bookIdx = ?;";
+
+        $st = $pdo->prepare($query);
+        $st->execute([$guestIdx, $returnBookList[$i]->bookIdx]);
+
+        $st = null;
+        $pdo = null;
+
+        $pdo = pdoSqlConnect();
+        $query = "update Book set quantity = quantity + 1 where bookIdx = ? and quantity < maxQuantity and isDeleted = 'N';";
+
+        $st = $pdo->prepare($query);
+        $st->execute([$returnBookList[$i]->bookIdx]);
+
+        $st = null;
+        $pdo = null;
+    }
 }
 // CREATE
 //    function addMaintenance($message){

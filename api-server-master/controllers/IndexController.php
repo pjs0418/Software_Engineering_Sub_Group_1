@@ -5,6 +5,7 @@ const JWT_SECRET_KEY = "TEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEY
 
 $res = (object)array();
 header('Content-Type: json');
+header("Access-Control-Allow-Origin: *");
 $req = json_decode(file_get_contents("php://input"));
 try {
     addAccessLogs($accessLogs, $req);
@@ -119,10 +120,19 @@ try {
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
 
-        case "getBooks":
+        case "addBooks":
             http_response_code(200);
 
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if($jwt == null) {
+                $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "토큰이 없습니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
 
             if (!isValidJWT($jwt, JWT_SECRET_KEY)) { // function.php 에 구현
                 $res->isSuccess = FALSE;
@@ -249,6 +259,31 @@ try {
             $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "게스트 책 대출 정보 조회 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
+        case "returnBooks":
+            http_response_code(200);
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidJWT($jwt, JWT_SECRET_KEY)) { // function.php 에 구현
+                $res->isSuccess = FALSE;
+                $res->code = 200;
+                $res->message = "유효하지 않은 토큰";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $guestIdx = $req->guestIdx;
+            $returnBookList = $req->returnBookList;
+
+            returnBooks($guestIdx, $returnBookList);
+
+            $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "책 반납 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
     }
