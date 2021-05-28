@@ -235,7 +235,8 @@ values (?, ?, date_add(now(), interval 7 day));";
 function getGuestIssueInfo($guestIdx)
 {
     $pdo = pdoSqlConnect();
-    $query = "select GuestIssueState.guestIdx,
+    $query = "select issueIdx,
+       GuestIssueState.guestIdx,
        guestName,
        GuestIssueState.bookIdx,
        bookTitle,
@@ -271,10 +272,10 @@ function returnBooks($guestIdx, $returnBookList)
     for($i = 0;$i < count($returnBookList);$i++) {
 
         $pdo = pdoSqlConnect();
-        $query = "update GuestIssueState set isReturned = 'Y' where guestIdx = ? and bookIdx = ?;";
+        $query = "update GuestIssueState set isReturned = 'Y' where issueIdx = ? and guestIdx = ? and bookIdx = ?;";
 
         $st = $pdo->prepare($query);
-        $st->execute([$guestIdx, $returnBookList[$i]->bookIdx]);
+        $st->execute([$returnBookList[$i]->issueIdx, $guestIdx, $returnBookList[$i]->bookIdx]);
 
         $st = null;
         $pdo = null;
