@@ -15,10 +15,10 @@ function isValidUser($ID, $pwd){
     return password_verify($pwd, $res[0]['hash']);
 
 }
-function getUserIdxByID($ID)
+function getManagerIdx($ID)
 {
     $pdo = pdoSqlConnect();
-    $query = "SELECT userIdx FROM Users WHERE ID = ?;";
+    $query = "SELECT managerIdx FROM Manager WHERE ID = ?;";
 
     $st = $pdo->prepare($query);
     $st->execute([$ID]);
@@ -28,5 +28,5 @@ function getUserIdxByID($ID)
     $st = null;
     $pdo = null;
 
-    return $res[0]['userIdx'];
+    return $res[0]['managerIdx'];
 }
