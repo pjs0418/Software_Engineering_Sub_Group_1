@@ -234,8 +234,8 @@ function getGuestIssueInfo($guestIdx)
        concat(date_sub(returnDate, interval 7 day), ' ~ ', returnDate) as issuePeriod,
        case when returnDate < date(now()) then 'o' else 'x' end        as overdueStatus,
        case
-           when TIMESTAMPDIFF(day, date(now()), returnDate) > 0
-               then TIMESTAMPDIFF(day, date(now()), returnDate) * 100
+           when TIMESTAMPDIFF(day, returnDate, date(now())) > 0
+               then TIMESTAMPDIFF(day, returnDate, date(now())) * 100
            else 0 end                                                  as calculatedFine
 from GuestIssueState
          inner join(select guestIdx, guestName from Guest) GuestInfo
